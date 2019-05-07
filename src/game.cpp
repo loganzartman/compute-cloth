@@ -90,6 +90,7 @@ void Game::update() {
 
     // dispatch compute shader to simulate cloth
     cloth_compute_program.use();
+    glUniform1f(cloth_compute_program.uniform_loc("time"), glfwGetTime());
     glDispatchCompute(10,10,1); // literally the dimensions of the cloth
 
     glViewport(0, 0, window_w, window_h);
