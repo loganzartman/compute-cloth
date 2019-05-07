@@ -1,5 +1,6 @@
 in vec4 vs_vertex_pos;
 in vec3 uvw;
+out vec4 frag_color;
 
 uniform vec3 camera_position;
 uniform float time;
@@ -21,14 +22,14 @@ vec3 line_plane_intersect(vec3 line_point, vec3 line_dir, vec3 plane_point, vec3
 }
 
 void main() {
-    gl_FragColor = vec4(0.6, 0.8, 1.0, 1.0);
+    frag_color = vec4(0.6, 0.8, 1.0, 1.0);
 
     vec3 ray_direction = normalize(vec3(vs_vertex_pos) - camera_position);
     vec3 sky_pos = line_plane_intersect(camera_position, ray_direction, clouds_pos, vec3(0,-1,0));
     float dist = length(sky_pos - camera_position);
     if (dist < clouds_vis_dist) {
-        float sample = perlin3d(sky_pos * 0.015 + vec3(time * 0.2, time * 0.05, 0), 2, 0.8);
-        float p = max(0, sample * max(0, 1 - dist / clouds_vis_dist));
-        gl_FragColor += vec4(p, p, p, 0);
+        float f = perlin3d(sky_pos * 0.015 + vec3(time * 0.2, time * 0.05, 0), 2, 0.8);
+        float p = max(0, f * max(0, 1 - dist / clouds_vis_dist));
+        frag_color += vec4(p, p, p, 0);
     }
 }
