@@ -20,7 +20,7 @@ using namespace std::chrono;
 
 void Game::init() {
     skybox_program.vertex({"skybox.vs"}).fragment({"perlin.glsl", "skybox.fs"}).compile();
-    cloth_program.vertex({"cloth.vs"}).fragment({"cloth.fs"}).compile();
+    cloth_program.vertex({"cloth.vs"}).geometry({"cloth.gs"}).fragment({"cloth.fs"}).compile();
     cloth_compute_program.compute({"cloth_compute.glsl"}).compile();
 
     // generate cloth vertices
@@ -122,13 +122,13 @@ void Game::update() {
     // need barrier synchronization to ensure availability of changes made to vertex buffer
     glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Turn on wireframe mode
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Turn on wireframe mode
     cloth_program.use();
     glUniformMatrix4fv(cloth_program.uniform_loc("projection"), 1, false, glm::value_ptr(projection_matrix));
     glUniformMatrix4fv(cloth_program.uniform_loc("view"), 1, false, glm::value_ptr(view_matrix));
     cloth.bind();
     glDrawElements(GL_TRIANGLES, cloth_indices.size(), GL_UNSIGNED_INT, cloth_indices.data());
     cloth.unbind();
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Turn off wireframe mode
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Turn off wireframe mode
 }
 
