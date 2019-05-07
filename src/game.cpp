@@ -20,6 +20,33 @@ using namespace std::chrono;
 
 void Game::init() {
     skybox_program.vertex({"skybox.vs"}).fragment({"perlin.glsl", "skybox.fs"}).compile();
+    cloth_program.vertex({"cloth.vs"}).fragment({"cloth.fs"}).compile();
+
+    // generate cloth vertices
+    cloth.add_attribs({3});
+    std::vector<glm::vec3> cloth_vertices;
+    for (int i=-5; i<5; i++) {
+        for (int j=-5; j<5; j++) {
+            cloth_vertices.push_back(glm::vec3(i,j,0));
+        }
+    }
+    cloth.vertices.set_data(cloth_vertices);
+
+    // generate indices for cloth triangles
+    auto cloth_index = [](int i, int j){return i*10+j;};
+    for (int i=0; i<9; ++i) {
+        for (int j=0; j<9; ++j) {
+            // top right triangle
+            cloth_indices.push_back(cloth_index(i,j));
+            cloth_indices.push_back(cloth_index(i+1,j+1));
+            cloth_indices.push_back(cloth_index(i+1,j));
+
+            // top right triangle
+            cloth_indices.push_back(cloth_index(i,j));
+            cloth_indices.push_back(cloth_index(i,j+1));
+            cloth_indices.push_back(cloth_index(i+1,j+1));
+        }
+    }
 
     skybox.add_attribs({3});
     skybox.vertices.set_data(std::vector<glm::vec3>{
@@ -77,5 +104,19 @@ void Game::update() {
         0, 3, 2, 2, 1, 0, 0, 5, 4, 4, 3, 0, 0, 1, 6, 6, 5, 0, 5, 6, 7, 7,
         4, 5, 1, 2, 7, 7, 6, 1, 3, 4, 7, 7, 2, 3
     }.data());
+    skybox.unbind();
+
+    // Turn on wireframe mode
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    cloth_program.use();
+    glUniformMatrix4fv(cloth_program.uniform_loc("projection"), 1, false, glm::value_ptr(projection_matrix));
+    glUniformMatrix4fv(cloth_program.uniform_loc("view"), 1, false, glm::value_ptr(view_matrix));
+    cloth.bind();
+    glDrawElements(GL_TRIANGLES, cloth_indices.size(), GL_UNSIGNED_INT, cloth_indices.data());
+    cloth.unbind();
+
+    // Turn off wireframe mode
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 

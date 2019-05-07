@@ -23,9 +23,12 @@ struct Game {
     glm::vec2 mouse_pos_vector = glm::vec2(0,0);
     float pitch = 0;
     float yaw = 0;
-    glm::vec3 eye = glm::vec3(0,0,-5);
+    glm::vec3 eye = glm::vec3(0,0,-10);
     glm::vec3 look = glm::vec3(0,0,0);
     glm::vec3 up = glm::vec3(0,1,0);
+    gfx::Program cloth_program = gfx::Program("cloth");
+    gfx::VAO cloth;
+    std::vector<uint> cloth_indices;
 
     gfx::Program skybox_program = gfx::Program("skybox");
     gfx::VAO skybox;
