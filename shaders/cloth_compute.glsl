@@ -5,6 +5,7 @@ layout(std430, binding=0) buffer VertexBlock
     vec3 vertex_pos[];
 };
 
+uniform uvec2 cloth_dimension;
 uniform float time;
 
 void main() {
@@ -14,7 +15,5 @@ void main() {
 
     uint x_index = gl_WorkGroupID.x;
     uint y_index = gl_WorkGroupID.y;
-    vertex_pos[index].x += sin(time + x_index * 0.5) * 0.01;
-    vertex_pos[index].y += sin(time + y_index * 0.5 + 0.5) * 0.01;
-    vertex_pos[index].z += sin(time + x_index * 0.5 + 0.5) * 0.01;
+    vertex_pos[index].x += 0.01;
 }

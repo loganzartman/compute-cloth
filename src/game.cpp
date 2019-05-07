@@ -26,18 +26,18 @@ void Game::init() {
     // generate cloth vertices
     // note that attribs MUST be vec4 aligned due to buffer packing in compute shader
     cloth.add_attribs({4});
-    std::vector<glm::vec4> cloth_vertices;
-    for (int i=-5; i<5; i++) {
-        for (int j=-5; j<5; j++) {
-            cloth_vertices.push_back(glm::vec4(i,j,0,1));
+    auto cloth_index = [&](int i, int j){return j*cloth_dimension.y+i;};
+    std::vector<glm::vec4> cloth_vertices(cloth_dimension.x * cloth_dimension.y);
+    for (int i=0; i<cloth_dimension.x; i++) {
+        for (int j=0; j<cloth_dimension.y; j++) {
+            cloth_vertices[cloth_index(i,j)] = glm::vec4(i*0.1 - cloth_dimension.x/2*0.1,j*0.1 - cloth_dimension.y/2*0.1,0,1);
         }
     }
     cloth.vertices.set_data(cloth_vertices);
 
     // generate indices for cloth triangles
-    auto cloth_index = [](int i, int j){return i*10+j;};
-    for (int i=0; i<9; ++i) {
-        for (int j=0; j<9; ++j) {
+    for (int i=0; i<cloth_dimension.x-1; ++i) {
+        for (int j=0; j<cloth_dimension.y-1; ++j) {
             // top right triangle
             cloth_indices.push_back(cloth_index(i,j));
             cloth_indices.push_back(cloth_index(i+1,j+1));
@@ -90,8 +90,9 @@ void Game::update() {
 
     // dispatch compute shader to simulate cloth
     cloth_compute_program.use();
+    glUniform2uiv(cloth_compute_program.uniform_loc("cloth_dimension"), 2, glm::value_ptr(cloth_dimension));
     glUniform1f(cloth_compute_program.uniform_loc("time"), glfwGetTime());
-    glDispatchCompute(10,10,1); // literally the dimensions of the cloth
+    glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1); // literally the dimensions of the cloth
 
     glViewport(0, 0, window_w, window_h);
     glClearColor(0.f,0.f,0.f,1.0f);
@@ -122,13 +123,13 @@ void Game::update() {
     // need barrier synchronization to ensure availability of changes made to vertex buffer
     glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
 
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Turn on wireframe mode
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Turn on wireframe mode
     cloth_program.use();
     glUniformMatrix4fv(cloth_program.uniform_loc("projection"), 1, false, glm::value_ptr(projection_matrix));
     glUniformMatrix4fv(cloth_program.uniform_loc("view"), 1, false, glm::value_ptr(view_matrix));
     cloth.bind();
     glDrawElements(GL_TRIANGLES, cloth_indices.size(), GL_UNSIGNED_INT, cloth_indices.data());
     cloth.unbind();
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Turn off wireframe mode
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Turn off wireframe mode
 }
 
