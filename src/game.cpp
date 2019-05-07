@@ -21,13 +21,15 @@ using namespace std::chrono;
 void Game::init() {
     skybox_program.vertex({"skybox.vs"}).fragment({"perlin.glsl", "skybox.fs"}).compile();
     cloth_program.vertex({"cloth.vs"}).fragment({"cloth.fs"}).compile();
+    cloth_compute_program.compute({"cloth_compute.glsl"}).compile();
 
     // generate cloth vertices
-    cloth.add_attribs({3});
-    std::vector<glm::vec3> cloth_vertices;
+    // note that attribs MUST be vec4 aligned due to buffer packing in compute shader
+    cloth.add_attribs({4});
+    std::vector<glm::vec4> cloth_vertices;
     for (int i=-5; i<5; i++) {
         for (int j=-5; j<5; j++) {
-            cloth_vertices.push_back(glm::vec3(i,j,0));
+            cloth_vertices.push_back(glm::vec4(i,j,0,1));
         }
     }
     cloth.vertices.set_data(cloth_vertices);
@@ -47,6 +49,12 @@ void Game::init() {
             cloth_indices.push_back(cloth_index(i+1,j+1));
         }
     }
+
+    // map cloth VBO to cloth shader storage buffer object
+    glGenBuffers(1, &cloth_ssbo_id);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, cloth_ssbo_id);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, cloth.vertices.id);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
     skybox.add_attribs({3});
     skybox.vertices.set_data(std::vector<glm::vec3>{
@@ -80,6 +88,10 @@ void Game::update() {
         mouse_prev = mouse_position;
     }
 
+    // dispatch compute shader to simulate cloth
+    cloth_compute_program.use();
+    glDispatchCompute(10,10,1); // literally the dimensions of the cloth
+
     glViewport(0, 0, window_w, window_h);
     glClearColor(0.f,0.f,0.f,1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -106,17 +118,16 @@ void Game::update() {
     }.data());
     skybox.unbind();
 
-    // Turn on wireframe mode
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // need barrier synchronization to ensure availability of changes made to vertex buffer
+    glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
 
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Turn on wireframe mode
     cloth_program.use();
     glUniformMatrix4fv(cloth_program.uniform_loc("projection"), 1, false, glm::value_ptr(projection_matrix));
     glUniformMatrix4fv(cloth_program.uniform_loc("view"), 1, false, glm::value_ptr(view_matrix));
     cloth.bind();
     glDrawElements(GL_TRIANGLES, cloth_indices.size(), GL_UNSIGNED_INT, cloth_indices.data());
     cloth.unbind();
-
-    // Turn off wireframe mode
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Turn off wireframe mode
 }
 

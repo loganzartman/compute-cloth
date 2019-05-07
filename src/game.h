@@ -27,6 +27,8 @@ struct Game {
     glm::vec3 look = glm::vec3(0,0,0);
     glm::vec3 up = glm::vec3(0,1,0);
     gfx::Program cloth_program = gfx::Program("cloth");
+    gfx::Program cloth_compute_program = gfx::Program("cloth_compute");
+    GLuint cloth_ssbo_id = 0;
     gfx::VAO cloth;
     std::vector<uint> cloth_indices;
 
