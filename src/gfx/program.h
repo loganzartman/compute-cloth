@@ -10,7 +10,7 @@
 #include "../util.h"
 
 namespace gfx {
-static std::string shader_prepend = "#version 330 core\n";
+static std::string shader_prepend = "#version 430 core\n";
 static std::string shader_root = "shaders";
 
 class Program {
@@ -33,6 +33,11 @@ public:
         return *this;
     }
 
+    Program& compute(std::initializer_list<std::string> srcs) {
+        compile_shader(srcs, compute_id, GL_COMPUTE_SHADER, "compute");
+        return *this;
+    }
+
     void compile_shader(std::initializer_list<std::string> srcs, GLuint& dest, GLenum type, std::string type_name) {
         std::string src = read_sources(srcs);
         dest = glCreateShader(type);
@@ -50,11 +55,16 @@ public:
         id = glCreateProgram();
 
         // attach shaders
-        if (!vertex_id) { throw std::runtime_error("Compiling program without vertex shader loaded."); }
-        if (!fragment_id) { throw std::runtime_error("Compiling program without fragment shader loaded."); }
-        glAttachShader(id, vertex_id);
-        if (geometry_id) { glAttachShader(id, geometry_id); }
-        glAttachShader(id, fragment_id);
+        if (compute_id) {
+            glAttachShader(id, compute_id);
+        }
+        else {
+            if (!vertex_id) { throw std::runtime_error("Compiling program without vertex shader loaded."); }
+            if (!fragment_id) { throw std::runtime_error("Compiling program without fragment shader loaded."); }
+            glAttachShader(id, vertex_id);
+            if (geometry_id) { glAttachShader(id, geometry_id); }
+            glAttachShader(id, fragment_id);
+        }
         
         glLinkProgram(id);
         check_program_errors(id);
@@ -66,6 +76,7 @@ public:
         if (vertex_id) { glDeleteShader(vertex_id); }
         if (geometry_id) { glDeleteShader(geometry_id); }
         if (fragment_id) { glDeleteShader(fragment_id); }
+        if (compute_id) { glDeleteShader(compute_id); }
     }
 
     GLint uniform_loc(std::string uname) {
@@ -84,6 +95,7 @@ public:
     GLuint vertex_id = 0;
     GLuint geometry_id = 0;
     GLuint fragment_id = 0;
+    GLuint compute_id = 0;
 
 private:
     /**
