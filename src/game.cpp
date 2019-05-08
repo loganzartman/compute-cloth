@@ -18,6 +18,11 @@
 
 using namespace std::chrono;
 
+struct ClothVertex {
+    glm::vec3 position;
+    float _pad0;
+};
+
 void Game::init() {
     skybox_program.vertex({"skybox.vs"}).fragment({"perlin.glsl", "skybox.fs"}).compile();
     cloth_program.vertex({"cloth.vs"}).geometry({"cloth.gs"}).fragment({"cloth.fs"}).compile();
@@ -25,12 +30,13 @@ void Game::init() {
 
     // generate cloth vertices
     // note that attribs MUST be vec4 aligned due to buffer packing in compute shader
-    cloth.add_attribs({4});
+    cloth.add_attribs({3,1});
     auto cloth_index = [&](int i, int j){return j*cloth_dimension.y+i;};
-    std::vector<glm::vec4> cloth_vertices(cloth_dimension.x * cloth_dimension.y);
+    std::vector<ClothVertex> cloth_vertices(cloth_dimension.x * cloth_dimension.y);
     for (int i=0; i<cloth_dimension.x; i++) {
         for (int j=0; j<cloth_dimension.y; j++) {
-            cloth_vertices[cloth_index(i,j)] = glm::vec4(i*0.1 - cloth_dimension.x/2*0.1,j*0.1 - cloth_dimension.y/2*0.1,0,1);
+            ClothVertex& cloth_vertex = cloth_vertices[cloth_index(i,j)];
+            cloth_vertex.position = (glm::vec3(i,j,0) - glm::vec3(cloth_dimension.x, cloth_dimension.y, 0)*0.5f) * 0.1f;
         }
     }
     cloth.vertices.set_data(cloth_vertices);
