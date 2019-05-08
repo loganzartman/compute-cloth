@@ -15,5 +15,5 @@ void main() {
 
     uint x_index = gl_WorkGroupID.x;
     uint y_index = gl_WorkGroupID.y;
-    vertex_pos[index].x += 0.01;
+    //vertex_pos[index].x += 0.01;
 }

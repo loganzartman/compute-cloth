@@ -85,6 +85,7 @@ void Game::update() {
         mouse_prev = mouse_position;
     } else {
         mouse_pos_vector = -(mouse_position - mouse_prev);
+        updateOrientation();
         mouse_prev = mouse_position;
     }
 
@@ -99,7 +100,7 @@ void Game::update() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
     // glCullFace(GL_BACK);
     // glEnable(GL_BLEND);
 
@@ -133,3 +134,16 @@ void Game::update() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Turn off wireframe mode
 }
 
+void Game::updateOrientation() {
+    if (glm::length(mouse_pos_vector) == 0) {
+		return;}
+	mouse_pos_vector.x *= -1.f;
+    mouse_pos_vector *= mouse_speed;
+    if (abs(pitch + mouse_pos_vector.y) <= 85) {
+        pitch += mouse_pos_vector.y;
+    }
+    yaw += mouse_pos_vector.x;
+    
+    glm::vec4 base_vector = glm::rotate(-yaw, glm::vec3(0,1,0)) * glm::rotate(-pitch, glm::vec3(1,0,0)) * glm::vec4(0,0,-10,1);
+    eye = base_vector; 
+}
