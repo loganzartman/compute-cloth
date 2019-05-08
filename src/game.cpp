@@ -152,9 +152,7 @@ void Game::updateOrientation() {
 		return;}
 	mouse_pos_vector.x *= -1.f;
     mouse_pos_vector *= mouse_speed;
-    if (abs(pitch + mouse_pos_vector.y) <= 85) {
-        pitch += mouse_pos_vector.y;
-    }
+    pitch = std::max(-1.57f, std::min(1.57f, pitch + mouse_pos_vector.y));
     yaw += mouse_pos_vector.x;
     
     glm::vec4 base_vector = glm::rotate(-yaw, glm::vec3(0,1,0)) * glm::rotate(-pitch, glm::vec3(1,0,0)) * glm::vec4(0,0,-10,1);
