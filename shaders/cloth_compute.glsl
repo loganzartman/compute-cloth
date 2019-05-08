@@ -4,6 +4,8 @@ layout(std430) struct Vertex
 {
     vec3 position;
     float _pad0;
+    vec3 prev_pos;
+    float _pad1;
 };
 
 layout(std430, binding=0) buffer VertexBlock
@@ -13,6 +15,7 @@ layout(std430, binding=0) buffer VertexBlock
 
 uniform uvec2 cloth_dimension;
 uniform float time;
+uniform float time_step;
 
 void main() {
     // give each compute invocation a unique ID.
@@ -20,6 +23,9 @@ void main() {
     uint x_index = gl_WorkGroupID.x;
     uint y_index = gl_WorkGroupID.y;
     uint index = gl_NumWorkGroups.x * y_index + x_index;
+    vec3 temp = vertex[index].position;
+    vertex[index].position = 2.0 * vertex[index].position - vertex[index].prev_pos + vec3(0.0,-9.8,0.0) * time_step * time_step;
+    vertex[index].prev_pos = temp;
 
-    vertex[index].position.x += 0.01;
+  
 }

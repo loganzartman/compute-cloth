@@ -21,6 +21,8 @@ using namespace std::chrono;
 struct ClothVertex {
     glm::vec3 position;
     float _pad0;
+    glm::vec3 prev_pos;
+    float _pad1;
 };
 
 void Game::init() {
@@ -30,13 +32,14 @@ void Game::init() {
 
     // generate cloth vertices
     // note that attribs MUST be vec4 aligned due to buffer packing in compute shader
-    cloth.add_attribs({3,1});
+    cloth.add_attribs({3,1,3,1});
     auto cloth_index = [&](int i, int j){return j*cloth_dimension.y+i;};
     std::vector<ClothVertex> cloth_vertices(cloth_dimension.x * cloth_dimension.y);
     for (int i=0; i<cloth_dimension.x; i++) {
         for (int j=0; j<cloth_dimension.y; j++) {
             ClothVertex& cloth_vertex = cloth_vertices[cloth_index(i,j)];
             cloth_vertex.position = (glm::vec3(i,j,0) - glm::vec3(cloth_dimension.x, cloth_dimension.y, 0)*0.5f) * 0.1f;
+            cloth_vertex.prev_pos = cloth_vertex.position;
         }
     }
     cloth.vertices.set_data(cloth_vertices);
@@ -55,6 +58,8 @@ void Game::init() {
             cloth_indices.push_back(cloth_index(i+1,j+1));
         }
     }
+
+    prev_time = glfwGetTime();
 
     // map cloth VBO to cloth shader storage buffer object
     glGenBuffers(1, &cloth_ssbo_id);
@@ -99,6 +104,8 @@ void Game::update() {
     cloth_compute_program.use();
     glUniform2uiv(cloth_compute_program.uniform_loc("cloth_dimension"), 2, glm::value_ptr(cloth_dimension));
     glUniform1f(cloth_compute_program.uniform_loc("time"), glfwGetTime());
+    glUniform1f(cloth_compute_program.uniform_loc("time_step"), glfwGetTime() - prev_time);
+    prev_time = glfwGetTime();
     glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1); // literally the dimensions of the cloth
 
     glViewport(0, 0, window_w, window_h);
