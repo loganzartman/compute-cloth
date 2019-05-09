@@ -15,7 +15,7 @@ struct Game {
     void update();
     void updateOrientation();
 
-    const glm::uvec2 cloth_dimension = glm::uvec2(100,100);
+    const glm::uvec2 cloth_dimension = glm::uvec2(10,10);
 
     //  Window, mouse, keyboard attributes
     GLFWwindow* window;
@@ -33,6 +33,7 @@ struct Game {
     glm::vec3 up = glm::vec3(0,1,0);
     gfx::Program cloth_program = gfx::Program("cloth");
     gfx::Program cloth_compute_program = gfx::Program("cloth_compute");
+    gfx::Program cloth_compute_accels_program = gfx::Program("compute_forces.glsl");
     GLuint cloth_ssbo_id = 0;
     gfx::VAO cloth;
     std::vector<uint> cloth_indices;

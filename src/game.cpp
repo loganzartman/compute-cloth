@@ -23,22 +23,27 @@ struct ClothVertex {
     float _pad0;
     glm::vec3 prev_pos;
     float _pad1;
+    glm::vec3 accel;
+    float _pad2;
 };
 
 void Game::init() {
     skybox_program.vertex({"skybox.vs"}).fragment({"perlin.glsl", "skybox.fs"}).compile();
     cloth_program.vertex({"cloth.vs"}).geometry({"cloth.gs"}).fragment({"cloth.fs"}).compile();
     cloth_compute_program.compute({"cloth_compute.glsl"}).compile();
+    cloth_compute_accels_program.compute({"compute_forces.glsl"}).compile();
 
     // generate cloth vertices
     // note that attribs MUST be vec4 aligned due to buffer packing in compute shader
-    cloth.add_attribs({3,1,3,1});
-    auto cloth_index = [&](int i, int j){return j*cloth_dimension.y+i;};
+    cloth.add_attribs({3,1,3,1,3,1});
+    auto cloth_index = [&](int i, int j){return j*cloth_dimension.x+i;};
     std::vector<ClothVertex> cloth_vertices(cloth_dimension.x * cloth_dimension.y);
     for (int i=0; i<cloth_dimension.x; i++) {
         for (int j=0; j<cloth_dimension.y; j++) {
             ClothVertex& cloth_vertex = cloth_vertices[cloth_index(i,j)];
-            cloth_vertex.position = (glm::vec3(i,j,0) - glm::vec3(cloth_dimension.x, cloth_dimension.y, 0)*0.5f) * 0.1f;
+            cloth_vertex.position = (glm::vec3(i,j,0) - glm::vec3(cloth_dimension.x, cloth_dimension.y, 0)*0.5f);
+            if (i == 2 && j == 2)
+                cloth_vertex.position += glm::vec3(0.25,0.25,0.0);
             cloth_vertex.prev_pos = cloth_vertex.position;
         }
     }
@@ -99,14 +104,25 @@ void Game::update() {
         updateOrientation();
         mouse_prev = mouse_position;
     }
+    
+    // accelerations
+    cloth_compute_accels_program.use();
+    glUniform2uiv(cloth_compute_accels_program.uniform_loc("cloth_dimension"), 1, glm::value_ptr(cloth_dimension));
+    glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1); // literally the dimensions of the cloth
+    
+    // need barrier synchronization to ensure visibility of writes to SSBO reads 
+    glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
     // dispatch compute shader to simulate cloth
     cloth_compute_program.use();
-    glUniform2uiv(cloth_compute_program.uniform_loc("cloth_dimension"), 2, glm::value_ptr(cloth_dimension));
+    glUniform2uiv(cloth_compute_program.uniform_loc("cloth_dimension"), 1, glm::value_ptr(cloth_dimension));
     glUniform1f(cloth_compute_program.uniform_loc("time"), glfwGetTime());
     glUniform1f(cloth_compute_program.uniform_loc("time_step"), glfwGetTime() - prev_time);
     prev_time = glfwGetTime();
     glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1); // literally the dimensions of the cloth
+
+    // need barrier synchronization to ensure visibility of writes to VAO reads 
+    glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
     glViewport(0, 0, window_w, window_h);
     glClearColor(0.f,0.f,0.f,1.0f);
@@ -134,8 +150,6 @@ void Game::update() {
     }.data());
     skybox.unbind();
 
-    // need barrier synchronization to ensure availability of changes made to vertex buffer
-    glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Turn on wireframe mode
     cloth_program.use();

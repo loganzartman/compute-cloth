@@ -6,6 +6,8 @@ layout(std430) struct Vertex
     float _pad0;
     vec3 prev_pos;
     float _pad1;
+    vec3 accel;
+    float _pad2;
 };
 
 layout(std430, binding=0) buffer VertexBlock
@@ -24,8 +26,10 @@ void main() {
     uint y_index = gl_WorkGroupID.y;
     uint index = gl_NumWorkGroups.x * y_index + x_index;
     vec3 temp = vertex[index].position;
-    vertex[index].position = 2.0 * vertex[index].position - vertex[index].prev_pos + vec3(0.0,-9.8,0.0) * time_step * time_step;
+    if (y_index == cloth_dimension.y - 1)
+        return;
+    //vertex[index].prev_pos = vertex[index].prev_pos * 0.8 + vertex[index].position * 0.2;
+    vertex[index].position = 2.0 * vertex[index].position - vertex[index].prev_pos + (vertex[index].accel + vec3(0,-9.8,0)) * time_step * time_step;
     vertex[index].prev_pos = temp;
 
-  
 }
