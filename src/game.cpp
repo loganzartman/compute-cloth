@@ -110,28 +110,30 @@ void Game::update() {
     }
 
     const float time = glfwGetTime();
-    const float time_step = time - prev_time;
+    const float time_step = (time - prev_time) / sub_steps;
 
-    // accelerations
-    cloth_compute_accels_program.use();
-    glUniform2uiv(cloth_compute_accels_program.uniform_loc("cloth_dimension"), 1, glm::value_ptr(cloth_dimension));
-    glUniform1f(cloth_compute_accels_program.uniform_loc("time"), time);
-    glUniform1f(cloth_compute_accels_program.uniform_loc("time_step"), time_step);
-    glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1); // literally the dimensions of the cloth
-    
-    // need barrier synchronization to ensure visibility of writes to SSBO reads 
-    glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    for (int i = 0; i < sub_steps; ++i) {
+        // accelerations
+        cloth_compute_accels_program.use();
+        glUniform2uiv(cloth_compute_accels_program.uniform_loc("cloth_dimension"), 1, glm::value_ptr(cloth_dimension));
+        glUniform1f(cloth_compute_accels_program.uniform_loc("time"), time);
+        glUniform1f(cloth_compute_accels_program.uniform_loc("time_step"), time_step);
+        glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1); // literally the dimensions of the cloth
 
-    // dispatch compute shader to simulate cloth
-    cloth_compute_program.use();
-    glUniform2uiv(cloth_compute_program.uniform_loc("cloth_dimension"), 1, glm::value_ptr(cloth_dimension));
-    glUniform1f(cloth_compute_program.uniform_loc("time"), time);
-    glUniform1f(cloth_compute_program.uniform_loc("time_step"), time_step);
-    prev_time = glfwGetTime();
-    glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1); // literally the dimensions of the cloth
+        // need barrier synchronization to ensure visibility of writes to SSBO reads 
+        glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-    // need barrier synchronization to ensure visibility of writes to VAO reads 
-    glMemoryBarrier(GL_ALL_BARRIER_BITS);
+        // dispatch compute shader to simulate cloth
+        cloth_compute_program.use();
+        glUniform2uiv(cloth_compute_program.uniform_loc("cloth_dimension"), 1, glm::value_ptr(cloth_dimension));
+        glUniform1f(cloth_compute_program.uniform_loc("time"), time);
+        glUniform1f(cloth_compute_program.uniform_loc("time_step"), time_step);
+        prev_time = glfwGetTime();
+        glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1); // literally the dimensions of the cloth
+
+        // need barrier synchronization to ensure visibility of writes to VAO reads 
+        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    }
 
     glViewport(0, 0, window_w, window_h);
     glClearColor(0.f,0.f,0.f,1.0f);

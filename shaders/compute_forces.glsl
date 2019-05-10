@@ -12,7 +12,7 @@ layout(std430) struct Vertex
     float _pad3;
 };
 
-const float stiffness = 10.0;
+const float stiffness = 2500.0;
 
 layout(std430, binding=0) buffer VertexBlock
 {
@@ -54,7 +54,7 @@ void main() {
 
             float dist = distance(vertex[current].position, vertex[neighbor].position);
             vec3 offset = normalize(vertex[neighbor].position - vertex[current].position);
-            force += offset * (dist - constraint_len) * 500;
+            force += offset * (dist - constraint_len) * stiffness;
         }
     }
 

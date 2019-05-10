@@ -36,7 +36,7 @@ void main() {
     
     // verlet integration
     vec3 temp = vertex[index].position;
-    vertex[index].accel += vec3(0,-5,0);
+    vertex[index].accel += vec3(0,-50,0);
     vertex[index].position += (1-damping) * (vertex[index].position - vertex[index].prev_pos) + vertex[index].accel * time_step * time_step;
     vertex[index].prev_pos = temp;
 }
