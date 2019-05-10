@@ -17,7 +17,7 @@ layout(std430, binding=0) buffer VertexBlock
     Vertex vertex[];
 };
 
-const float damping = 0.01;
+const float damping = 2;
 
 uniform uvec2 cloth_dimension;
 uniform float time;
@@ -55,6 +55,6 @@ void main() {
     // verlet integration
     vec3 temp = vertex[index].position;
     vertex[index].accel += vec3(0,-50,0);
-    vertex[index].position += (1-damping) * (vertex[index].position - vertex[index].prev_pos) + vertex[index].accel * time_step * time_step;
+    vertex[index].position += max(1-damping*time_step, 0) * (vertex[index].position - vertex[index].prev_pos) + vertex[index].accel * time_step * time_step;
     vertex[index].prev_pos = temp;
 }
