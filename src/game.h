@@ -15,7 +15,7 @@ struct Game {
     void update();
     void updateOrientation();
 
-    const glm::uvec2 cloth_dimension = glm::uvec2(10,10);
+    const glm::uvec2 cloth_dimension = glm::uvec2(25,25);
 
     //  Window, mouse, keyboard attributes
     GLFWwindow* window;

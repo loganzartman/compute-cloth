@@ -3,6 +3,7 @@
 #include <cmath>
 #include <array>
 #include <chrono>
+#include <unistd.h>
 
 #include <glad/glad.h>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -11,6 +12,7 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtc/random.hpp>
 #include <iostream>
 #include "game.h"
 #include "gfx/program.h"
@@ -25,6 +27,8 @@ struct ClothVertex {
     float _pad1;
     glm::vec3 accel;
     float _pad2;
+    glm::vec3 debug_color;
+    float _pad3;
 };
 
 void Game::init() {
@@ -35,16 +39,16 @@ void Game::init() {
 
     // generate cloth vertices
     // note that attribs MUST be vec4 aligned due to buffer packing in compute shader
-    cloth.add_attribs({3,1,3,1,3,1});
-    auto cloth_index = [&](int i, int j){return j*cloth_dimension.x+i;};
+    cloth.add_attribs({3,1,3,1,3,1,3,1});
+    auto cloth_index = [&](int x, int y){return y*cloth_dimension.x+x;};
     std::vector<ClothVertex> cloth_vertices(cloth_dimension.x * cloth_dimension.y);
     for (int i=0; i<cloth_dimension.x; i++) {
         for (int j=0; j<cloth_dimension.y; j++) {
             ClothVertex& cloth_vertex = cloth_vertices[cloth_index(i,j)];
-            cloth_vertex.position = (glm::vec3(i,j,0) - glm::vec3(cloth_dimension.x, cloth_dimension.y, 0)*0.5f);
-            if (i == 2 && j == 2)
-                cloth_vertex.position += glm::vec3(0.25,0.25,0.0);
-            cloth_vertex.prev_pos = cloth_vertex.position;
+            cloth_vertex.position = (glm::vec3(i,j,10) - glm::vec3(cloth_dimension.x, cloth_dimension.y, 0)*0.5f);
+            // cloth_vertex.position += glm::ballRand(0.1f);
+            cloth_vertex.prev_pos = cloth_vertex.position; 
+            cloth_vertex.debug_color = glm::vec3((float)i/cloth_dimension.x, (float)j/cloth_dimension.y, 0);
         }
     }
     cloth.vertices.set_data(cloth_vertices);
@@ -104,10 +108,15 @@ void Game::update() {
         updateOrientation();
         mouse_prev = mouse_position;
     }
-    
+
+    const float time = glfwGetTime();
+    const float time_step = time - prev_time;
+
     // accelerations
     cloth_compute_accels_program.use();
     glUniform2uiv(cloth_compute_accels_program.uniform_loc("cloth_dimension"), 1, glm::value_ptr(cloth_dimension));
+    glUniform1f(cloth_compute_accels_program.uniform_loc("time"), time);
+    glUniform1f(cloth_compute_accels_program.uniform_loc("time_step"), time_step);
     glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1); // literally the dimensions of the cloth
     
     // need barrier synchronization to ensure visibility of writes to SSBO reads 
@@ -116,8 +125,8 @@ void Game::update() {
     // dispatch compute shader to simulate cloth
     cloth_compute_program.use();
     glUniform2uiv(cloth_compute_program.uniform_loc("cloth_dimension"), 1, glm::value_ptr(cloth_dimension));
-    glUniform1f(cloth_compute_program.uniform_loc("time"), glfwGetTime());
-    glUniform1f(cloth_compute_program.uniform_loc("time_step"), glfwGetTime() - prev_time);
+    glUniform1f(cloth_compute_program.uniform_loc("time"), time);
+    glUniform1f(cloth_compute_program.uniform_loc("time_step"), time_step);
     prev_time = glfwGetTime();
     glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1); // literally the dimensions of the cloth
 

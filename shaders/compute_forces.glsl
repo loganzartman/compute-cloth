@@ -8,7 +8,11 @@ layout(std430) struct Vertex
     float _pad1;
     vec3 accel;
     float _pad2;
+    vec3 debug_color;
+    float _pad3;
 };
+
+const float stiffness = 10.0;
 
 layout(std430, binding=0) buffer VertexBlock
 {
@@ -19,37 +23,40 @@ uniform uvec2 cloth_dimension;
 uniform float time;
 uniform float time_step;
 
-void main() {
-    // give each compute invocation a unique ID.
-    // it is assumed that the dimensions of gl_NumWorkGroups match the size of the cloth
-    uint x_index = gl_WorkGroupID.x;
-    uint y_index = gl_WorkGroupID.y;
-    uint index = gl_NumWorkGroups.x * y_index + x_index;
+uint index(ivec2 pos) {
+    return pos.y * cloth_dimension.x + pos.x;
+}
 
-    const float len = 1.0;
-    const float diagonal_len = sqrt(2.0) * len;
-    const float k = 0.5;
-    vec3 force = vec3(0.0);
-    for(int i=-1; i<=1; i++) {
-        for(int j = -1; j<=1; j++) {
-            if (i == 0 && j == 0)
+bool in_bounds(ivec2 pos) {
+    return pos.x >= 0 && pos.y >= 0 && pos.x < cloth_dimension.x && pos.y < cloth_dimension.y;
+}
+
+void main() {
+    ivec2 pos = ivec2(gl_WorkGroupID.xy);
+    uint current = index(pos);
+
+    vec3 force = vec3(0);
+    // if (pos.x > 0 && pos.y > 0 && pos.x < cloth_dimension.x-1 && pos.y < cloth_dimension.y-1)
+    for (int dx = -1; dx <= 1; ++dx) {
+        for (int dy = -1; dy <= 1; ++dy) {
+            if (dx == 0 && dy == 0) {
                 continue;
-            if (x_index + i < 0 || y_index + j < 0 || x_index + i >= cloth_dimension.x || y_index + j >= cloth_dimension.y)
+            }
+            ivec2 neighbor_pos = pos + ivec2(dx, dy);
+            if (!in_bounds(neighbor_pos)) {
                 continue;
-            uint neighbor = gl_NumWorkGroups.x * (y_index + j) + x_index + i;
-            float dist = distance(vertex[neighbor].position, vertex[index].position);
-            vec3 direction = normalize(vertex[neighbor].position - vertex[index].position);
-            float x;
-            if (i != 0 && j != 0) // diagonal neighbor
-                x = dist - diagonal_len; 
-            else
-                x = dist - len;
-            
-            force += k*x*direction;
+            }
+            uint neighbor = index(neighbor_pos);
+
+            float constraint_len = 1.0;
+            if (dx != 0 && dy != 0)
+                constraint_len *= sqrt(2.0);
+
+            float dist = distance(vertex[current].position, vertex[neighbor].position);
+            vec3 offset = normalize(vertex[neighbor].position - vertex[current].position);
+            force += offset * (dist - constraint_len) * 500;
         }
     }
 
-
-    vertex[index].accel = force;
-  
+    vertex[current].accel = force;
 }
