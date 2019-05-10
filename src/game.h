@@ -34,7 +34,7 @@ struct Game {
     bool moving = false;
     bool freeze_sphere = false;
     bool wireframe = false;
-    glm::vec3 eye = glm::vec3(0,0,-20);
+    glm::vec3 eye = glm::vec3(0,0,-cam_dist);
     glm::vec3 look = glm::vec3(0,0,0);
     glm::vec3 up = glm::vec3(0,1,0);
     gfx::Program cloth_program = gfx::Program("cloth");
