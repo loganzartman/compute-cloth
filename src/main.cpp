@@ -36,8 +36,11 @@ MessageCallback( GLenum source,
 
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     Game* game = (Game*)glfwGetWindowUserPointer(window);
-    if (action == GLFW_PRESS)
+    if (action == GLFW_PRESS) {
         game->key_pressed[key] = true;
+        if (key == GLFW_KEY_1)
+            game->wireframe = !game->wireframe;
+    }
     if (action == GLFW_RELEASE)
         game->key_pressed[key] = false;
 }
