@@ -48,19 +48,31 @@ void main() {
     uint current = index(pos);
 
     vec3 force = vec3(0);
-    for (int dx = -1; dx <= 1; ++dx) {
-        for (int dy = -1; dy <= 1; ++dy) {
-            if (dx == 0 && dy == 0) {
-                continue;
-            }
-            ivec2 neighbor_pos = pos + ivec2(dx, dy);
 
-            float constraint_len = 1.0;
-            if (dx != 0 && dy != 0)
-                constraint_len *= sqrt(2.0);
-            
-            force += compute_force(pos, neighbor_pos, constraint_len);
-        }
+    const ivec2 offsets[] = ivec2[](
+        // 3x3 neighborhood
+        ivec2(-1,-1), ivec2(-1,0), ivec2(-1,1),
+        ivec2(0,-1), ivec2(0,1),
+        ivec2(1,-1), ivec2(1,0), ivec2(1,1)
+
+        // bending constraints
+        // ivec2(-2,0), ivec2(0,-2), ivec2(2,0), ivec2(0,2)
+    );
+    const float len = 1.0;
+    const float len_diag = len * sqrt(2.0);
+    const float len_bend = len * 2.0;
+    const float constraint_lens[] = float[](
+        len_diag, len, len_diag,
+        len, len,
+        len_diag, len, len_diag
+
+        // len_bend, len_bend, len_bend, len_bend
+    );
+
+    for (int i = 0; i < offsets.length(); ++i) {
+        ivec2 neighbor_pos = pos + offsets[i];
+        float constraint_len = constraint_lens[i];
+        force += compute_force(pos, neighbor_pos, constraint_len);
     }
 
     vertex[current].accel = force;
