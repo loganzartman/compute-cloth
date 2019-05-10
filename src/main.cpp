@@ -36,7 +36,6 @@ MessageCallback( GLenum source,
 
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     Game* game = (Game*)glfwGetWindowUserPointer(window);
-
     if (action == GLFW_PRESS)
         game->key_pressed[key] = true;
     if (action == GLFW_RELEASE)
@@ -45,14 +44,14 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
 void MousePosCallback(GLFWwindow* window, double mouse_x, double mouse_y) {   
     Game* game = (Game*)glfwGetWindowUserPointer(window);
-    if (game->mouse_pressed)
-        game->mouse_position = glm::vec2(mouse_x, mouse_y);
+    game->mouse_position = glm::vec2(mouse_x, mouse_y);
 }
 
 void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
     Game* game = (Game*)glfwGetWindowUserPointer(window);
     if (button == GLFW_MOUSE_BUTTON_LEFT && action != GLFW_RELEASE) {
         game->mouse_pressed = true;
+        game->mouse_prev = game->mouse_position;
     } else {
         game->mouse_pressed = false;
     }

@@ -45,7 +45,7 @@ void Game::init() {
     for (int i=0; i<cloth_dimension.x; i++) {
         for (int j=0; j<cloth_dimension.y; j++) {
             ClothVertex& cloth_vertex = cloth_vertices[cloth_index(i,j)];
-            cloth_vertex.position = (glm::vec3(i,j,10) - glm::vec3(cloth_dimension.x, cloth_dimension.y, 0)*0.5f);
+            cloth_vertex.position = (glm::vec3(i,j,0) - glm::vec3(cloth_dimension.x, cloth_dimension.y, 0)*0.5f);
             // cloth_vertex.position += glm::ballRand(0.1f);
             cloth_vertex.prev_pos = cloth_vertex.position; 
             cloth_vertex.debug_color = glm::vec3((float)i/cloth_dimension.x, (float)j/cloth_dimension.y, 0);
@@ -103,10 +103,23 @@ void Game::update() {
     bool first = mouse_prev == glm::vec2(-1,-1);
     if (first) {
         mouse_prev = mouse_position;
-    } else {
+    } else if (mouse_pressed){
         mouse_pos_vector = -(mouse_position - mouse_prev);
         updateOrientation();
         mouse_prev = mouse_position;
+    }
+
+    if (key_pressed[GLFW_KEY_W]) {
+        cam_dist += 0.1f;
+        moving = true;
+        updateOrientation();
+        moving = false;
+    }
+    if (key_pressed[GLFW_KEY_S]) {
+        cam_dist -= 0.1f;
+        moving = true;
+        updateOrientation();
+        moving = false;
     }
 
     const float time = glfwGetTime();
@@ -173,13 +186,15 @@ void Game::update() {
 }
 
 void Game::updateOrientation() {
-    if (glm::length(mouse_pos_vector) == 0) {
+    if (glm::length(mouse_pos_vector) == 0 && !moving) {
 		return;}
+
+    if (cam_dist >= -0.3) 
+        cam_dist = -0.3;
 	mouse_pos_vector.x *= -1.f;
     mouse_pos_vector *= mouse_speed;
     pitch = std::max(-1.57f, std::min(1.57f, pitch + mouse_pos_vector.y));
     yaw += mouse_pos_vector.x;
-    
-    glm::vec4 base_vector = glm::rotate(-yaw, glm::vec3(0,1,0)) * glm::rotate(-pitch, glm::vec3(1,0,0)) * glm::vec4(0,0,-10,1);
-    eye = base_vector; 
+    glm::vec4 base_vector = glm::rotate(-yaw, glm::vec3(0,1,0)) * glm::rotate(-pitch, glm::vec3(1,0,0)) * glm::vec4(0,0,cam_dist,1);
+    eye = base_vector;
 }

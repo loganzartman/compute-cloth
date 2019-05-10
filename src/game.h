@@ -28,7 +28,9 @@ struct Game {
     float yaw = 0;
     float mouse_speed = 0.01;
     float prev_time = 0.f;
+    float cam_dist = -10.0f;
     bool mouse_pressed = false;
+    bool moving = false;
     glm::vec3 eye = glm::vec3(0,0,-10);
     glm::vec3 look = glm::vec3(0,0,0);
     glm::vec3 up = glm::vec3(0,1,0);
