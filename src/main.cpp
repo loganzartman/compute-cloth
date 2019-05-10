@@ -40,6 +40,10 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         game->key_pressed[key] = true;
         if (key == GLFW_KEY_1)
             game->wireframe = !game->wireframe;
+        
+        if (key == GLFW_KEY_F) {
+            game->freeze_sphere = !game->freeze_sphere;
+    }
     }
     if (action == GLFW_RELEASE)
         game->key_pressed[key] = false;

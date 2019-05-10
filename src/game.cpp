@@ -124,9 +124,6 @@ void Game::update() {
         updateOrientation();
         moving = false;
     }
-    if (key_pressed[GLFW_KEY_F]) {
-        freeze_sphere = !freeze_sphere;
-    }
 
     const float time = glfwGetTime();
     const float time_step = (time - prev_time) / sub_steps;
