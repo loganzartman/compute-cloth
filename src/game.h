@@ -31,7 +31,7 @@ struct Game {
     float cam_dist = -10.0f;
     bool mouse_pressed = false;
     bool moving = false;
-    glm::vec3 eye = glm::vec3(0,0,-10);
+    glm::vec3 eye = glm::vec3(0,0,-20);
     glm::vec3 look = glm::vec3(0,0,0);
     glm::vec3 up = glm::vec3(0,1,0);
     gfx::Program cloth_program = gfx::Program("cloth");
