@@ -24,6 +24,7 @@ struct Game {
     glm::vec2 mouse_position = glm::vec2(-1,-1);
     glm::vec2 mouse_prev = glm::vec2(-1,-1);
     glm::vec2 mouse_pos_vector = glm::vec2(0,0);
+    glm::vec3 sphere_pos = glm::vec3(1.41,-10,-8);
     float pitch = 0;
     float yaw = 0;
     float mouse_speed = 0.01;
@@ -31,6 +32,7 @@ struct Game {
     float cam_dist = -10.0f;
     bool mouse_pressed = false;
     bool moving = false;
+    bool freeze_sphere = false;
     glm::vec3 eye = glm::vec3(0,0,-20);
     glm::vec3 look = glm::vec3(0,0,0);
     glm::vec3 up = glm::vec3(0,1,0);

@@ -10,6 +10,8 @@ layout(std430) struct Vertex
     float _pad2;
     vec3 debug_color;
     float _pad3;
+    vec3 normal;
+    float _pad4;
 };
 
 const float stiffness = 2500.0;
@@ -53,10 +55,10 @@ void main() {
         // 3x3 neighborhood
         ivec2(-1,-1), ivec2(-1,0), ivec2(-1,1),
         ivec2(0,-1), ivec2(0,1),
-        ivec2(1,-1), ivec2(1,0), ivec2(1,1)
+        ivec2(1,-1), ivec2(1,0), ivec2(1,1),
 
         // bending constraints
-        // ivec2(-2,0), ivec2(0,-2), ivec2(2,0), ivec2(0,2)
+        ivec2(-2,0), ivec2(0,-2), ivec2(2,0), ivec2(0,2)
     );
     const float len = 1.0;
     const float len_diag = len * sqrt(2.0);
@@ -66,13 +68,46 @@ void main() {
         len, len,
         len_diag, len, len_diag
 
-        // len_bend, len_bend, len_bend, len_bend
+        ,len_bend, len_bend, len_bend, len_bend
     );
 
     for (int i = 0; i < offsets.length(); ++i) {
         ivec2 neighbor_pos = pos + offsets[i];
         float constraint_len = constraint_lens[i];
         force += compute_force(pos, neighbor_pos, constraint_len);
+    }
+
+    if (pos.x < cloth_dimension.x-1 && pos.y < cloth_dimension.y-1) {
+        vec3 first = vertex[index(ivec2(pos.x, pos.y+1))].position - vertex[current].position;
+        vec3 second = vertex[index(ivec2(pos.x+1, pos.y))].position - vertex[current].position;
+
+        vertex[current].normal = cross(first, second);
+    }
+
+   else if (pos.x == cloth_dimension.x - 1 && pos.y == cloth_dimension.y -1 ) {
+       uint new_ind = index(ivec2(pos.x-1, pos.y-1));
+
+        vec3 first = vertex[index(ivec2(pos.x-1, pos.y))].position - vertex[new_ind].position;
+        vec3 second = vertex[index(ivec2(pos.x, pos.y-1))].position - vertex[new_ind].position;
+
+        vertex[current].normal = cross(first, second);
+    }
+
+   else if (pos.x == cloth_dimension.x - 1 ) {
+
+       uint new_ind = index(ivec2(pos.x-1, pos.y));
+        vec3 first = vertex[index(ivec2(pos.x-1, pos.y+1))].position - vertex[new_ind].position;
+        vec3 second = vertex[index(ivec2(pos.x, pos.y))].position - vertex[new_ind].position;
+
+        vertex[current].normal = cross(first, second);
+    }
+
+   else if (pos.y == cloth_dimension.y - 1 ) {
+       uint new_ind = index(ivec2(pos.x, pos.y-1));
+        vec3 first = vertex[index(ivec2(pos.x, pos.y))].position - vertex[new_ind].position;
+        vec3 second = vertex[index(ivec2(pos.x+1, pos.y-1))].position - vertex[new_ind].position;
+
+        vertex[current].normal = cross(first, second);
     }
 
     vertex[current].accel = force;

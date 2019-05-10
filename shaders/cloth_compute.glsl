@@ -10,6 +10,8 @@ layout(std430) struct Vertex
     float _pad2;
     vec3 debug_color;
     float _pad3;
+    vec3 normal;
+    float _pad4;
 };
 
 layout(std430, binding=0) buffer VertexBlock

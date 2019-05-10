@@ -29,6 +29,8 @@ struct ClothVertex {
     float _pad2;
     glm::vec3 debug_color;
     float _pad3;
+    glm::vec3 normal;
+    float _pad4;
 };
 
 void Game::init() {
@@ -39,7 +41,7 @@ void Game::init() {
 
     // generate cloth vertices
     // note that attribs MUST be vec4 aligned due to buffer packing in compute shader
-    cloth.add_attribs({3,1,3,1,3,1,3,1});
+    cloth.add_attribs({3,1,3,1,3,1,3,1,3,1});
     auto cloth_index = [&](int x, int y){return y*cloth_dimension.x+x;};
     std::vector<ClothVertex> cloth_vertices(cloth_dimension.x * cloth_dimension.y);
     for (int i=0; i<cloth_dimension.x; i++) {
@@ -49,6 +51,7 @@ void Game::init() {
             // cloth_vertex.position += glm::ballRand(0.1f);
             cloth_vertex.prev_pos = cloth_vertex.position; 
             cloth_vertex.debug_color = glm::vec3((float)i/cloth_dimension.x, (float)j/cloth_dimension.y, 0);
+            cloth_vertex.normal = glm::vec3(0,0,-1);
         }
     }
     cloth.vertices.set_data(cloth_vertices);
@@ -121,6 +124,9 @@ void Game::update() {
         updateOrientation();
         moving = false;
     }
+    if (key_pressed[GLFW_KEY_F]) {
+        freeze_sphere = !freeze_sphere;
+    }
 
     const float time = glfwGetTime();
     const float time_step = (time - prev_time) / sub_steps;
@@ -141,7 +147,11 @@ void Game::update() {
         glUniform2uiv(cloth_compute_program.uniform_loc("cloth_dimension"), 1, glm::value_ptr(cloth_dimension));
         glUniform1f(cloth_compute_program.uniform_loc("time"), time);
         glUniform1f(cloth_compute_program.uniform_loc("time_step"), time_step);
-        glUniform3f(cloth_compute_program.uniform_loc("sphere_pos"), (mouse_position.x/window_w *2 - 1) *25, -10.0f,  (mouse_position.y/window_h * 2 -1) * 25 );
+        if (!freeze_sphere) {
+            sphere_pos = glm::vec3((mouse_position.x/window_w *2 - 1) *25, -10.0f,  (mouse_position.y/window_h * 2 -1) * 25 );
+        }
+        std::cout << glm::to_string(sphere_pos) << std::endl;
+        glUniform3f(cloth_compute_program.uniform_loc("sphere_pos"), sphere_pos.x, sphere_pos.y, sphere_pos.z);
         prev_time = glfwGetTime();
         glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1); // literally the dimensions of the cloth
 
@@ -176,14 +186,14 @@ void Game::update() {
     skybox.unbind();
 
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Turn on wireframe mode
+ //   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Turn on wireframe mode
     cloth_program.use();
     glUniformMatrix4fv(cloth_program.uniform_loc("projection"), 1, false, glm::value_ptr(projection_matrix));
     glUniformMatrix4fv(cloth_program.uniform_loc("view"), 1, false, glm::value_ptr(view_matrix));
     cloth.bind();
     glDrawElements(GL_TRIANGLES, cloth_indices.size(), GL_UNSIGNED_INT, cloth_indices.data());
     cloth.unbind();
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Turn off wireframe mode
+ //   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Turn off wireframe mode
 }
 
 void Game::updateOrientation() {
