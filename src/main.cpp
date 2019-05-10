@@ -76,12 +76,13 @@ int main() {
     if (!glfwInit()) { throw std::runtime_error("glfwInit failed"); }
 
     // create window and GL context
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     GLFWwindow* window = glfwCreateWindow(800, 600, "cloth", NULL, NULL);
     if (!window) { throw std::runtime_error("glfwCreateWindow failed"); }
     glfwMakeContextCurrent(window);
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+    std::cout << "** GL Version: " << GLVersion.major << "." << GLVersion.minor << std::endl;
     glfwSwapInterval(1); // enable vsync (0 to disable)
     Game game(window);
     glfwSetWindowUserPointer(window, &game);
