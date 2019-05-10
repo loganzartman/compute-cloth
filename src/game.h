@@ -15,7 +15,7 @@ struct Game {
     void update();
     void updateOrientation();
 
-    const uint sub_steps = 3;
+    const uint sub_steps = 5;
     const glm::uvec2 cloth_dimension = glm::uvec2(25,25);
 
     //  Window, mouse, keyboard attributes
@@ -26,9 +26,9 @@ struct Game {
     glm::vec2 mouse_pos_vector = glm::vec2(0,0);
     glm::vec3 sphere_pos = glm::vec3(1.41,-10,-8);
     float pitch = 0;
-    float yaw = 0;
+    float yaw = 1.57;
     float mouse_speed = 0.01;
-    float prev_time = 0.f;
+    float prev_time = glfwGetTime();
     float cam_dist = -10.0f;
     bool mouse_pressed = false;
     bool moving = false;
@@ -38,8 +38,9 @@ struct Game {
     glm::vec3 look = glm::vec3(0,0,0);
     glm::vec3 up = glm::vec3(0,1,0);
     gfx::Program cloth_program = gfx::Program("cloth");
-    gfx::Program cloth_compute_program = gfx::Program("cloth_compute");
-    gfx::Program cloth_compute_accels_program = gfx::Program("compute_forces.glsl");
+    gfx::Program cloth_verlet_program = gfx::Program("compute_verlet");
+    gfx::Program cloth_constraints_program = gfx::Program("compute_constraints");
+    gfx::Program cloth_apply_accel_program = gfx::Program("compute_apply_accel");
     GLuint cloth_ssbo_id = 0;
     gfx::VAO cloth;
     std::vector<uint> cloth_indices;

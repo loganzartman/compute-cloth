@@ -36,8 +36,10 @@ struct ClothVertex {
 void Game::init() {
     skybox_program.vertex({"skybox.vs"}).fragment({"perlin.glsl", "skybox.fs"}).compile();
     cloth_program.vertex({"cloth.vs"}).geometry({"cloth.gs"}).fragment({"cloth.fs"}).compile();
-    cloth_compute_program.compute({"cloth_compute.glsl"}).compile();
-    cloth_compute_accels_program.compute({"compute_forces.glsl"}).compile();
+    
+    cloth_constraints_program.compute({"compute_common.glsl", "compute_constraints.glsl"}).compile();
+    cloth_apply_accel_program.compute({"compute_common.glsl", "compute_apply_accel.glsl"}).compile();
+    cloth_verlet_program.compute({"compute_common.glsl", "compute_verlet.glsl"}).compile();
 
     // generate cloth vertices
     // note that attribs MUST be vec4 aligned due to buffer packing in compute shader
@@ -125,35 +127,47 @@ void Game::update() {
         moving = false;
     }
 
-    const float time = glfwGetTime();
-    const float time_step = (time - prev_time) / sub_steps;
+    if (!freeze_sphere) {
+        sphere_pos = glm::vec3((mouse_position.x/window_w *2 - 1) *25, 0.0f,  (mouse_position.y/window_h * 2 -1) * 25 );
+    }
 
+    // dispatch compute shaders
+    const float time = glfwGetTime();
+    const float time_step = time - prev_time;
+    prev_time = glfwGetTime();
+    std::cout << "f" << time_step << std::endl;
+
+    auto set_compute_uniforms = [&](gfx::Program& pgm){
+        glUniform2uiv(pgm.uniform_loc("cloth_dimension"), 1, glm::value_ptr(cloth_dimension));
+        glUniform1f(pgm.uniform_loc("time"), time);
+        glUniform1f(pgm.uniform_loc("time_step"), time_step);
+        glUniform3f(pgm.uniform_loc("sphere_pos"), sphere_pos.x, sphere_pos.y, sphere_pos.z);
+    };
+
+    // iteratively resolve constraints
     for (int i = 0; i < sub_steps; ++i) {
-        // accelerations
-        cloth_compute_accels_program.use();
-        glUniform2uiv(cloth_compute_accels_program.uniform_loc("cloth_dimension"), 1, glm::value_ptr(cloth_dimension));
-        glUniform1f(cloth_compute_accels_program.uniform_loc("time"), time);
-        glUniform1f(cloth_compute_accels_program.uniform_loc("time_step"), time_step);
-        glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1); // literally the dimensions of the cloth
+        // accumulate constraint resolutions into accel
+        cloth_constraints_program.use();
+        set_compute_uniforms(cloth_constraints_program);
+        glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1);
 
         // need barrier synchronization to ensure visibility of writes to SSBO reads 
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-        // dispatch compute shader to simulate cloth
-        cloth_compute_program.use();
-        glUniform2uiv(cloth_compute_program.uniform_loc("cloth_dimension"), 1, glm::value_ptr(cloth_dimension));
-        glUniform1f(cloth_compute_program.uniform_loc("time"), time);
-        glUniform1f(cloth_compute_program.uniform_loc("time_step"), time_step);
-        if (!freeze_sphere) {
-            sphere_pos = glm::vec3((mouse_position.x/window_w *2 - 1) *25, -10.0f,  (mouse_position.y/window_h * 2 -1) * 25 );
-        }
-        glUniform3f(cloth_compute_program.uniform_loc("sphere_pos"), sphere_pos.x, sphere_pos.y, sphere_pos.z);
-        prev_time = glfwGetTime();
-        glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1); // literally the dimensions of the cloth
+        // apply accel directly to position
+        cloth_apply_accel_program.use();
+        set_compute_uniforms(cloth_apply_accel_program);
+        glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1);
 
-        // need barrier synchronization to ensure visibility of writes to VAO reads 
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
     }
+
+    cloth_verlet_program.use();
+    set_compute_uniforms(cloth_verlet_program);
+    glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1); // literally the dimensions of the cloth
+
+    // need barrier synchronization to ensure visibility of writes to VAO reads 
+    glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
     glViewport(0, 0, window_w, window_h);
     glClearColor(0.f,0.f,0.f,1.0f);
