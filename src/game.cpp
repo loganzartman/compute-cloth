@@ -150,7 +150,6 @@ void Game::update() {
         if (!freeze_sphere) {
             sphere_pos = glm::vec3((mouse_position.x/window_w *2 - 1) *25, -10.0f,  (mouse_position.y/window_h * 2 -1) * 25 );
         }
-        std::cout << glm::to_string(sphere_pos) << std::endl;
         glUniform3f(cloth_compute_program.uniform_loc("sphere_pos"), sphere_pos.x, sphere_pos.y, sphere_pos.z);
         prev_time = glfwGetTime();
         glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1); // literally the dimensions of the cloth
@@ -186,14 +185,16 @@ void Game::update() {
     skybox.unbind();
 
 
- //   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Turn on wireframe mode
+    if (wireframe)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Turn on wireframe mode
     cloth_program.use();
     glUniformMatrix4fv(cloth_program.uniform_loc("projection"), 1, false, glm::value_ptr(projection_matrix));
     glUniformMatrix4fv(cloth_program.uniform_loc("view"), 1, false, glm::value_ptr(view_matrix));
     cloth.bind();
     glDrawElements(GL_TRIANGLES, cloth_indices.size(), GL_UNSIGNED_INT, cloth_indices.data());
     cloth.unbind();
- //   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Turn off wireframe mode
+    if (wireframe)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Turn off wireframe mode
 }
 
 void Game::updateOrientation() {

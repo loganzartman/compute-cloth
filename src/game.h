@@ -33,6 +33,7 @@ struct Game {
     bool mouse_pressed = false;
     bool moving = false;
     bool freeze_sphere = false;
+    bool wireframe = false;
     glm::vec3 eye = glm::vec3(0,0,-20);
     glm::vec3 look = glm::vec3(0,0,0);
     glm::vec3 up = glm::vec3(0,1,0);
