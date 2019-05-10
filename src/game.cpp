@@ -141,6 +141,7 @@ void Game::update() {
         glUniform2uiv(cloth_compute_program.uniform_loc("cloth_dimension"), 1, glm::value_ptr(cloth_dimension));
         glUniform1f(cloth_compute_program.uniform_loc("time"), time);
         glUniform1f(cloth_compute_program.uniform_loc("time_step"), time_step);
+        glUniform3f(cloth_compute_program.uniform_loc("sphere_pos"), 0.0f, -10.0f,  25.0f * sin(glfwGetTime()));
         prev_time = glfwGetTime();
         glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1); // literally the dimensions of the cloth
 

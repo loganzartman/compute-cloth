@@ -22,6 +22,15 @@ const float damping = 0.01;
 uniform uvec2 cloth_dimension;
 uniform float time;
 uniform float time_step;
+uniform vec3 sphere_pos;
+
+const float vertex_sphere_radius = 0.01;
+const float sphere_radius = 10.0;
+
+
+vec3 proj(vec3 a, vec3 b) {
+    return b * dot(a,b) / pow(length(b), 2);
+}
 
 void main() {
     // give each compute invocation a unique ID.
@@ -33,7 +42,16 @@ void main() {
     // pin corners
     if (y_index == cloth_dimension.y - 1 && (x_index == 0 || x_index == cloth_dimension.x-1))
         return;
-    
+
+    float distance_to_sphere = distance(sphere_pos, vertex[index].position);
+    if (distance_to_sphere < sphere_radius + vertex_sphere_radius) { // collision
+        vec3 sphere_dir = normalize(vertex[index].position - sphere_pos);
+        vec3 velocity = vertex[index].position - vertex[index].prev_pos;
+        vec3 projection = proj(velocity, sphere_dir);
+        velocity -= projection;
+        vertex[index].position = sphere_pos +  sphere_dir * (sphere_radius + vertex_sphere_radius); 
+        vertex[index].prev_pos = vertex[index].position - velocity;
+    }
     // verlet integration
     vec3 temp = vertex[index].position;
     vertex[index].accel += vec3(0,-50,0);
