@@ -36,6 +36,7 @@ struct ClothVertex {
 void Game::init() {
     skybox_program.vertex({"skybox.vs"}).fragment({"perlin.glsl", "skybox.fs"}).compile();
     cloth_program.vertex({"cloth.vs"}).geometry({"cloth.gs"}).fragment({"cloth.fs"}).compile();
+    sphere_program.vertex({"sphere.vs"}).fragment({"sphere.fs"}).compile();
     
     cloth_constraints_program.compute({"compute_common.glsl", "compute_constraints.glsl"}).compile();
     cloth_apply_accel_program.compute({"compute_common.glsl", "compute_apply_accel.glsl"}).compile();
@@ -87,6 +88,12 @@ void Game::init() {
         {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f},
         {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}
     });
+
+    std::vector<glm::vec3> sphere_vertices;
+    create_sphere(1, sphere_vertices, sphere_indices);
+    sphere.add_attribs({3});
+    sphere.vertices.set_data(sphere_vertices);
+
     handleResize();
 }
 
@@ -135,7 +142,6 @@ void Game::update() {
     const float time = glfwGetTime();
     const float time_step = time - prev_time;
     prev_time = glfwGetTime();
-    std::cout << "f" << time_step << std::endl;
 
     auto set_compute_uniforms = [&](gfx::Program& pgm){
         glUniform2uiv(pgm.uniform_loc("cloth_dimension"), 1, glm::value_ptr(cloth_dimension));
@@ -198,6 +204,8 @@ void Game::update() {
 
     if (wireframe)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Turn on wireframe mode
+    
+    // render cloth
     cloth_program.use();
     glUniformMatrix4fv(cloth_program.uniform_loc("projection"), 1, false, glm::value_ptr(projection_matrix));
     glUniformMatrix4fv(cloth_program.uniform_loc("view"), 1, false, glm::value_ptr(view_matrix));
@@ -205,6 +213,17 @@ void Game::update() {
     cloth.bind();
     glDrawElements(GL_TRIANGLES, cloth_indices.size(), GL_UNSIGNED_INT, cloth_indices.data());
     cloth.unbind();
+
+    // render sphere
+    sphere_program.use();
+    glUniformMatrix4fv(sphere_program.uniform_loc("projection"), 1, false, glm::value_ptr(projection_matrix));
+    glUniformMatrix4fv(sphere_program.uniform_loc("view"), 1, false, glm::value_ptr(view_matrix));
+    glUniform3f(sphere_program.uniform_loc("sphere_pos"), sphere_pos.x, sphere_pos.y, sphere_pos.z);
+    glUniform1f(sphere_program.uniform_loc("sphere_radius"), 5.f);
+    sphere.bind();
+    glDrawElements(GL_TRIANGLES, sphere_indices.size() * 3, GL_UNSIGNED_INT, sphere_indices.data());
+    sphere.unbind();
+
     if (wireframe)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Turn off wireframe mode
 }

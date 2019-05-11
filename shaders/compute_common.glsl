@@ -24,7 +24,7 @@ uniform float time;
 uniform float time_step;
 uniform vec3 sphere_pos;
 
-const float vertex_sphere_radius = 0.01;
+const float vertex_sphere_radius = 0.1;
 const float sphere_radius = 5.0;
 
 uint index(ivec2 pos) {

@@ -48,4 +48,8 @@ struct Game {
 
     gfx::Program skybox_program = gfx::Program("skybox");
     gfx::VAO skybox;
+
+    gfx::Program sphere_program = gfx::Program("sphere");
+    gfx::VAO sphere;
+    std::vector<glm::uvec3> sphere_indices;
 };
