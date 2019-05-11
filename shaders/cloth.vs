@@ -18,5 +18,5 @@ void main() {
     vs_accel = accel;
     vs_debug_color = debug_color;
     vs_normal = normal;
-    vs_view_direction = normalize(projection * view * vec4(0,0,1,0)).xyz;
+    vs_view_direction = normalize((projection * view * vec4(0,0,1,0)).xyz);
 }
