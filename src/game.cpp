@@ -50,7 +50,7 @@ void Game::init() {
     for (int i=0; i<cloth_dimension.x; i++) {
         for (int j=0; j<cloth_dimension.y; j++) {
             ClothVertex& cloth_vertex = cloth_vertices[cloth_index(i,j)];
-            cloth_vertex.position = (glm::vec3(i,j,0) - glm::vec3(cloth_dimension.x, cloth_dimension.y, 0)*0.5f);
+            cloth_vertex.position = (glm::vec3(i,0,j) - glm::vec3(cloth_dimension.x, 0, cloth_dimension.y)*0.5f);
             // cloth_vertex.position += glm::ballRand(0.1f);
             cloth_vertex.prev_pos = cloth_vertex.position; 
             cloth_vertex.debug_color = glm::vec3((float)i/cloth_dimension.x, (float)j/cloth_dimension.y, 0);
