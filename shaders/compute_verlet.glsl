@@ -16,8 +16,10 @@ void main() {
         return;
     }
 
+    vec3 sphere_pos = sphere[0].position;
+    float sphere_radius = sphere[0].radius;
     float distance_to_sphere = distance(sphere_pos, vertex[index].position);
-    if (distance_to_sphere < sphere_radius + vertex_sphere_radius) { // collision
+    if (distance_to_sphere < sphere_radius + vertex_sphere_radius && false) { // collision
         vec3 sphere_dir = normalize(vertex[index].position - sphere_pos);
         vec3 velocity = vertex[index].position - vertex[index].prev_pos;
         vec3 projection = proj(velocity, sphere_dir);

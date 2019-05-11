@@ -14,18 +14,29 @@ struct Vertex
     float _pad4;
 };
 
+struct Sphere
+{
+    vec3 position;
+    float _pad0;
+    float radius;
+    float[3] _pad1;
+};
+
 layout(std430, binding=0) buffer VertexBlock
 {
     Vertex vertex[];
 };
 
+layout(std430, binding=1) buffer SphereBlock
+{
+    Sphere sphere[];
+};
+
 uniform uvec2 cloth_dimension;
 uniform float time;
 uniform float time_step;
-uniform vec3 sphere_pos;
 
 const float vertex_sphere_radius = 0.1;
-const float sphere_radius = 5.0;
 
 uint index(ivec2 pos) {
     return pos.y * cloth_dimension.x + pos.x;

@@ -33,6 +33,14 @@ struct ClothVertex {
     float _pad4;
 };
 
+struct SphereInstance {
+    SphereInstance(const glm::vec3& p, const float& r) {position = p; radius = r;}
+    glm::vec3 position;
+    float _pad0;
+    float radius;
+    float _pad1[3];
+};
+
 void Game::init() {
     skybox_program.vertex({"skybox.vs"}).fragment({"perlin.glsl", "skybox.fs"}).compile();
     cloth_program.vertex({"cloth.vs"}).geometry({"cloth.gs"}).fragment({"cloth.fs"}).compile();
@@ -92,7 +100,17 @@ void Game::init() {
     std::vector<glm::vec3> sphere_vertices;
     create_sphere(1, sphere_vertices, sphere_indices);
     sphere.add_attribs({3});
+    sphere.add_instanced_attribs({3,1,1,3});
+    std::vector<SphereInstance> sphere_instances;
+    sphere_instances.push_back(SphereInstance(glm::vec3(0,0,0), 5.f));
+    sphere.instances.set_data(sphere_instances); 
     sphere.vertices.set_data(sphere_vertices);
+
+    glGenBuffers(1, &sphere_ssbo_id);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, sphere_ssbo_id);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, sphere.instances.id);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
 
     handleResize();
 }
@@ -218,10 +236,8 @@ void Game::update() {
     sphere_program.use();
     glUniformMatrix4fv(sphere_program.uniform_loc("projection"), 1, false, glm::value_ptr(projection_matrix));
     glUniformMatrix4fv(sphere_program.uniform_loc("view"), 1, false, glm::value_ptr(view_matrix));
-    glUniform3f(sphere_program.uniform_loc("sphere_pos"), sphere_pos.x, sphere_pos.y, sphere_pos.z);
-    glUniform1f(sphere_program.uniform_loc("sphere_radius"), 5.f);
     sphere.bind();
-    glDrawElements(GL_TRIANGLES, sphere_indices.size() * 3, GL_UNSIGNED_INT, sphere_indices.data());
+    glDrawElementsInstanced(GL_TRIANGLES, sphere_indices.size() *3, GL_UNSIGNED_INT, sphere_indices.data(), sphere.instances.size());
     sphere.unbind();
 
     if (wireframe)

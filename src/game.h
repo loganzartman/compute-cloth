@@ -43,6 +43,7 @@ struct Game {
     gfx::Program cloth_constraints_program = gfx::Program("compute_constraints");
     gfx::Program cloth_apply_accel_program = gfx::Program("compute_apply_accel");
     GLuint cloth_ssbo_id = 0;
+    GLuint sphere_ssbo_id = 0;
     gfx::VAO cloth;
     std::vector<uint> cloth_indices;
 
