@@ -39,7 +39,7 @@ void Game::init() {
     
     cloth_constraints_program.compute({"compute_common.glsl", "compute_constraints.glsl"}).compile();
     cloth_apply_accel_program.compute({"compute_common.glsl", "compute_apply_accel.glsl"}).compile();
-    cloth_verlet_program.compute({"compute_common.glsl", "compute_verlet.glsl"}).compile();
+    cloth_verlet_program.compute({"compute_common.glsl", "perlin.glsl", "compute_verlet.glsl"}).compile();
 
     // generate cloth vertices
     // note that attribs MUST be vec4 aligned due to buffer packing in compute shader
@@ -201,6 +201,7 @@ void Game::update() {
     cloth_program.use();
     glUniformMatrix4fv(cloth_program.uniform_loc("projection"), 1, false, glm::value_ptr(projection_matrix));
     glUniformMatrix4fv(cloth_program.uniform_loc("view"), 1, false, glm::value_ptr(view_matrix));
+    glUniform1i(cloth_program.uniform_loc("enable_specular"), enable_specular);
     cloth.bind();
     glDrawElements(GL_TRIANGLES, cloth_indices.size(), GL_UNSIGNED_INT, cloth_indices.data());
     cloth.unbind();

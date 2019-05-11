@@ -36,5 +36,5 @@ bool in_bounds(ivec2 pos) {
 }
 
 bool pinned(ivec2 pos) {
-    return pos.y == cloth_dimension.y - 1 && (pos.x == 0 || pos.x == cloth_dimension.x-1);
+    return pos.y == cloth_dimension.y - 1 ;//&& (pos.x == 0 || pos.x == cloth_dimension.x-1);
 }

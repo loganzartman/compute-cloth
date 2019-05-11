@@ -10,6 +10,7 @@ out vec4 vs_vertex_pos;
 out vec3 vs_accel;
 out vec3 vs_debug_color;
 out vec3 vs_normal;
+out vec3 vs_view_direction;
 
 void main() {
     gl_Position = vec4(vertex_pos, 1.);
@@ -17,4 +18,5 @@ void main() {
     vs_accel = accel;
     vs_debug_color = debug_color;
     vs_normal = normal;
+    vs_view_direction = normalize(projection * view * vec4(0,0,1,0)).xyz;
 }

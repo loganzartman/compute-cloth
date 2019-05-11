@@ -26,9 +26,10 @@ void main() {
         vertex[index].prev_pos = vertex[index].position - velocity;
     }
     
+    float f = perlin3d(vec3(vertex[index].position.xy * 0.1, time)) + 0.5;
     vec3 temp = vertex[index].position;
     vertex[index].accel += vec3(0,-50,0);
-    vertex[index].accel += proj(vec3(0,0,-50), vertex[index].normal);
+    vertex[index].accel += proj(vec3(0,0,-100*f), vertex[index].normal);
     vertex[index].position += max(1-damping*time_step, 0) * (vertex[index].position - vertex[index].prev_pos) + vertex[index].accel * time_step * time_step;
     vertex[index].prev_pos = temp;
 }
