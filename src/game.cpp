@@ -158,7 +158,7 @@ void Game::update() {
     }
     if (key_pressed[GLFW_KEY_T]) {
         std::vector<SphereInstance> sphere_instances;
-        glm::vec3 velocity = projection_matrix * view_matrix * glm::vec4(0,0,1,0);
+        glm::vec3 velocity = glm::inverse(view_matrix) * glm::vec4(0,0,-1,0);
         sphere_instances.push_back(SphereInstance(eye, 5.f, velocity));
         sphere.instances.set_data(sphere_instances); 
     }
