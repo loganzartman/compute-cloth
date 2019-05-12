@@ -257,4 +257,5 @@ void Game::updateOrientation() {
         yaw += mouse_pos_vector.x;
         glm::vec4 base_vector = glm::rotate(-glm::radians(yaw), glm::vec3(0,1,0)) * glm::rotate(-glm::radians(pitch), glm::vec3(1,0,0)) * glm::vec4(0,0,cam_dist,1);
         eye = base_vector;
+        mouse_pos_vector = glm::vec2(0,0);
 }
