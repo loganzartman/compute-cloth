@@ -1,5 +1,5 @@
-const float damping = 1;
-const float sphere_mass = 100;
+const float damping = 0.2;
+const float sphere_mass = 300;
 
 void main() {
     uint current = gl_WorkGroupID.x;
