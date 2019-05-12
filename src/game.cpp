@@ -34,7 +34,7 @@ struct ClothVertex {
 };
 
 struct SphereInstance {
-    SphereInstance(const glm::vec3& p, const float& r) : position(p), radius(r), prev_pos(p), accel(0) {}
+    SphereInstance(const glm::vec3& p, const float& r, const glm::vec3& v = glm::vec3(0)) : position(p), radius(r), prev_pos(p-v), accel(0) {}
     glm::vec3 position;
     float _pad0;
     float radius;
@@ -155,6 +155,12 @@ void Game::update() {
         moving = true;
         updateOrientation();
         moving = false;
+    }
+    if (key_pressed[GLFW_KEY_T]) {
+        std::vector<SphereInstance> sphere_instances;
+        glm::vec3 velocity = projection_matrix * view_matrix * glm::vec4(0,0,1,0);
+        sphere_instances.push_back(SphereInstance(eye, 5.f, velocity));
+        sphere.instances.set_data(sphere_instances); 
     }
 
     if (!freeze_sphere) {
