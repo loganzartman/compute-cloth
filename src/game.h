@@ -16,7 +16,7 @@ struct Game {
     void updateOrientation();
 
     const uint sub_steps = 5;
-    const glm::uvec2 cloth_dimension = glm::uvec2(25,25);
+    const glm::uvec2 cloth_dimension = glm::uvec2(35,45);
 
     //  Window, mouse, keyboard attributes
     GLFWwindow* window;
@@ -29,12 +29,12 @@ struct Game {
     float yaw = 1.57;
     float mouse_speed = 0.01;
     float prev_time = glfwGetTime();
-    float cam_dist = -10.0f;
+    float cam_dist = -50.0f;
     bool mouse_pressed = false;
     bool moving = false;
     bool freeze_sphere = false;
     bool wireframe = false;
-    bool enable_specular = false;
+    bool enable_specular = true;
     glm::vec3 eye = glm::vec3(0,0,-cam_dist);
     glm::vec3 look = glm::vec3(0,0,0);
     glm::vec3 up = glm::vec3(0,1,0);

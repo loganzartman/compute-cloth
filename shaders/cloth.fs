@@ -54,7 +54,7 @@ void main() {
     vec3 specular_color = vec3(1,1,1);
     float roughness = 0.3;
 
-    vec3 diffuse = vec3(max(0, n_dot_l)) * color;
+    vec3 diffuse = vec3(max(0, n_dot_l)) * color * 0.2;
     vec3 ambient = vec3(0.6,0.6,0.6) * color;
     
     // specular
