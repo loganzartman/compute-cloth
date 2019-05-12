@@ -34,11 +34,15 @@ struct ClothVertex {
 };
 
 struct SphereInstance {
-    SphereInstance(const glm::vec3& p, const float& r) {position = p; radius = r;}
+    SphereInstance(const glm::vec3& p, const float& r) : position(p), radius(r), prev_pos(p), accel(0) {}
     glm::vec3 position;
     float _pad0;
     float radius;
     float _pad1[3];
+    glm::vec3 prev_pos;
+    float _pad2;
+    glm::vec3 accel;
+    float _pad3;
 };
 
 void Game::init() {
@@ -49,6 +53,7 @@ void Game::init() {
     cloth_constraints_program.compute({"compute_common.glsl", "compute_constraints.glsl"}).compile();
     cloth_apply_accel_program.compute({"compute_common.glsl", "compute_apply_accel.glsl"}).compile();
     cloth_verlet_program.compute({"compute_common.glsl", "perlin.glsl", "compute_verlet.glsl"}).compile();
+    sphere_verlet_program.compute({"compute_common.glsl", "compute_sphere_verlet.glsl"}).compile();
 
     // generate cloth vertices
     // note that attribs MUST be vec4 aligned due to buffer packing in compute shader
@@ -100,7 +105,7 @@ void Game::init() {
     std::vector<glm::vec3> sphere_vertices;
     create_sphere(1, sphere_vertices, sphere_indices);
     sphere.add_attribs({3});
-    sphere.add_instanced_attribs({3,1,1,3});
+    sphere.add_instanced_attribs({3,1,1,3,3,1,3,1});
     std::vector<SphereInstance> sphere_instances;
     sphere_instances.push_back(SphereInstance(glm::vec3(0,10,0), 5.f));
     sphere.instances.set_data(sphere_instances); 
@@ -165,7 +170,6 @@ void Game::update() {
         glUniform2uiv(pgm.uniform_loc("cloth_dimension"), 1, glm::value_ptr(cloth_dimension));
         glUniform1f(pgm.uniform_loc("time"), time);
         glUniform1f(pgm.uniform_loc("time_step"), time_step);
-        glUniform3f(pgm.uniform_loc("sphere_pos"), sphere_pos.x, sphere_pos.y, sphere_pos.z);
     };
 
     // iteratively resolve constraints
@@ -191,6 +195,12 @@ void Game::update() {
     glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1); // literally the dimensions of the cloth
 
     // need barrier synchronization to ensure visibility of writes to VAO reads 
+    glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+    sphere_verlet_program.use();
+    set_compute_uniforms(sphere_verlet_program);
+    glDispatchCompute(sphere.instances.size(),1,1);
+
     glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
     glViewport(0, 0, window_w, window_h);

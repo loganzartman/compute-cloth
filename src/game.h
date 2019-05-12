@@ -51,6 +51,7 @@ struct Game {
     gfx::VAO skybox;
 
     gfx::Program sphere_program = gfx::Program("sphere");
+    gfx::Program sphere_verlet_program = gfx::Program("compute_sphere_verlet");
     gfx::VAO sphere;
     std::vector<glm::uvec3> sphere_indices;
 };

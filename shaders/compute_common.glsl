@@ -20,6 +20,10 @@ struct Sphere
     float _pad0;
     float radius;
     float[3] _pad1;
+    vec3 prev_pos;
+    float _pad2;
+    vec3 accel;
+    float _pad3;
 };
 
 layout(std430, binding=0) buffer VertexBlock
