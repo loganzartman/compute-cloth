@@ -252,9 +252,9 @@ void Game::updateOrientation() {
         cam_dist = -0.3;
         mouse_pos_vector.x *= -1.f;
         mouse_pos_vector *= mouse_speed;
-        pitch +=  glm::radians(pitch + mouse_pos_vector.y);
-        pitch = std::max(-1.57f, std::min(1.57f, pitch));
+        pitch +=  mouse_pos_vector.y;
+        pitch = std::max(-89.f, std::min(89.f, pitch));
         yaw += mouse_pos_vector.x;
-        glm::vec4 base_vector = glm::rotate(-glm::radians(yaw), glm::vec3(0,1,0)) * glm::rotate(-pitch, glm::vec3(1,0,0)) * glm::vec4(0,0,cam_dist,1);
+        glm::vec4 base_vector = glm::rotate(-glm::radians(yaw), glm::vec3(0,1,0)) * glm::rotate(-glm::radians(pitch), glm::vec3(1,0,0)) * glm::vec4(0,0,cam_dist,1);
         eye = base_vector;
 }
