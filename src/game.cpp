@@ -107,7 +107,7 @@ void Game::init() {
     sphere.add_attribs({3});
     sphere.add_instanced_attribs({3,1,1,3,3,1,3,1});
     std::vector<SphereInstance> sphere_instances;
-    sphere_instances.push_back(SphereInstance(glm::vec3(0,10,0), 5.f));
+    sphere_instances.push_back(SphereInstance(glm::vec3(4,10,0), 5.f));
     sphere.instances.set_data(sphere_instances); 
     sphere.vertices.set_data(sphere_vertices);
 

@@ -53,3 +53,7 @@ bool in_bounds(ivec2 pos) {
 bool pinned(ivec2 pos) {
     return pos == ivec2(0,0) || pos == ivec2(cloth_dimension.x-1,0) || pos == ivec2(0,cloth_dimension.y-1) || pos == ivec2(cloth_dimension.x-1,cloth_dimension.y-1);
 }
+
+vec3 proj(vec3 a, vec3 b) {
+    return b * dot(a,b) / pow(length(b), 2);
+}
