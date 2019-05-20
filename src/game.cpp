@@ -54,6 +54,7 @@ void Game::init() {
     cloth_apply_accel_program.compute({"compute_common.glsl", "compute_apply_accel.glsl"}).compile();
     cloth_verlet_program.compute({"compute_common.glsl", "perlin.glsl", "compute_verlet.glsl"}).compile();
     sphere_verlet_program.compute({"compute_common.glsl", "compute_sphere_verlet.glsl"}).compile();
+    collisions_program.compute({"compute_common.glsl", "compute_collisions.glsl"}).compile();
 
     // generate cloth vertices
     // note that attribs MUST be vec4 aligned due to buffer packing in compute shader
@@ -196,12 +197,15 @@ void Game::update() {
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
     }
 
+    collisions_program.use();
+    set_compute_uniforms(collisions_program);
+    glDispatchCompute(1,1,1);
+
+    glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
     cloth_verlet_program.use();
     set_compute_uniforms(cloth_verlet_program);
     glDispatchCompute(cloth_dimension.x,cloth_dimension.y,1); // literally the dimensions of the cloth
-
-    // need barrier synchronization to ensure visibility of writes to VAO reads 
-    glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
     sphere_verlet_program.use();
     set_compute_uniforms(sphere_verlet_program);

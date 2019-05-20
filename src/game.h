@@ -54,4 +54,6 @@ struct Game {
     gfx::Program sphere_verlet_program = gfx::Program("compute_sphere_verlet");
     gfx::VAO sphere;
     std::vector<glm::uvec3> sphere_indices;
+
+    gfx::Program collisions_program = gfx::Program("compute_collisions");
 };
