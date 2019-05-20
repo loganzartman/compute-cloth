@@ -1,3 +1,5 @@
+layout(local_size_x=1, local_size_y=1, local_size_z=1) in;
+
 vec3 resolve_constraint(ivec2 pos, ivec2 neighbor, float constraint_len) {
     if (!in_bounds(neighbor)) {
         return vec3(0);
